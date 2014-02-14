@@ -6,7 +6,6 @@
  * (c) 2013 Daniel Imhoff <dwieeb@gmail.com> - danielimhoff.com
  */
 (function($) {
-
 	var browserType,
 
 	textrange = {
@@ -83,7 +82,7 @@
 		 * @param text The text to replace the selection with.
 		 */
 		replace: function(text) {
-			_textrange[browserType].replace.apply(this, [text]);
+			_textrange[browserType].replace.apply(this, [String(text)]);
 
 			return this;
 		},
@@ -99,6 +98,7 @@
 	_textrange = {
 		xul: {
 			get: function(property) {
+				this[0].focus();
 				var props = {
 					position: this[0].selectionStart,
 					start: this[0].selectionStart,
@@ -111,20 +111,33 @@
 			},
 
 			set: function(start, end) {
+				this[0].focus();
 				this[0].selectionStart = start;
 				this[0].selectionEnd = end;
 			},
 
 			replace: function(text) {
-				var start = this[0].selectionStart;
-				this.val(this.val().substring(0, this[0].selectionStart) + text + this.val().substring(this[0].selectionEnd, this.val().length));
-				this[0].selectionStart = start;
-				this[0].selectionEnd = start + text.length;
+				this[0].focus();
+				var val, end, start, length;
+				val = this.val();
+				end = this[0].selectionEnd;
+				start = this[0].selectionStart;
+				length = end - start;
+				this.val(val.substring(0, start) + String(text) + val.substring(end, val.length));
+				if (length) {
+					this[0].selectionStart = start;
+					this[0].selectionEnd = start + text.length;
+				} else {
+					this[0].selectionStart = start + text.length;
+					this[0].selectionEnd = start + text.length;
+				}
 			}
 		},
 
 		msie: {
 			get: function(property) {
+				this[0].focus();
+
 				var range = document.selection.createRange();
 
 				if (typeof range === 'undefined') {
@@ -153,6 +166,8 @@
 			},
 
 			set: function(start, end) {
+				this[0].focus();
+
 				var range = this[0].createTextRange();
 
 				if (typeof range === 'undefined') {
@@ -172,6 +187,8 @@
 			},
 
 			replace: function(text) {
+				this[0].focus();
+
 				document.selection.createRange().text = text;
 			}
 		}
@@ -185,16 +202,6 @@
 		// I don't know how to support this browser. :c
 		if (browserType === 'unknown') {
 			return this;
-		}
-
-		// Prevents unpleasant behaviour for textareas in IE:
-		// If you have a textarea which is too wide to be displayed entirely and therfore has to be scrolled horizontally,
-		// then typing one character after another will scroll the page automatically to the right at the moment you reach
-		// the right border of the visible part. But calling the focus function causes the page to be scrolled to the left
-		// edge of the textarea. Immediately after that jump to the left side, the content is scrolled back to the cursor
-		// position, which leads to a flicker page every time you type a character.
-		if (document.activeElement !== this[0]) {
-			this[0].focus();
 		}
 
 		if (typeof method === 'undefined' || typeof method !== 'string') {
