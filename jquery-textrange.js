@@ -126,10 +126,10 @@
 				this.val(val.substring(0, start) + String(text) + val.substring(end, val.length));
 				if (length) {
 					this[0].selectionStart = start;
-					this[0].selectionEnd = start + text.length;
+					this[0].selectionEnd = start + String(text).length;
 				} else {
-					this[0].selectionStart = start + text.length;
-					this[0].selectionEnd = start + text.length;
+					this[0].selectionStart = start + String(text).length;
+					this[0].selectionEnd = start + String(text).length;
 				}
 			}
 		},
